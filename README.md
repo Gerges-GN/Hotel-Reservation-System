@@ -4,7 +4,7 @@ A modern, web-based platform for managing hotel reservations, designed to stream
 
 ## Demo
 
-🔗 **Live Demo:**
+🔗 **Live Demo:** [HRS-gerges.vercel.app](https://hrs-gerges.vercel.app/)
 
 📁 **GitHub Repo:** [Hotel Reservation System](https://github.com/Gerges-GN/Hotel-Reservation-System)
 
