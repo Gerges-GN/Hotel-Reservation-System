@@ -106,13 +106,13 @@ export const AdminDashboard = ({ roomTypes, setRoomTypes, rooms }) => {
       </div>
 
       {/* Inventory Management */}
-      <Card className="p-6">
-        <div className="flex justify-between items-center mb-6">
+      <Card className="p-6 ">
+        <div className="flex flex-col sm:flex-row gap-2 justify-between items-center mb-6">
           <h3 className="font-bold text-lg flex items-center gap-2 text-gray-800">
             <Settings className="w-5 h-5 text-gray-400" /> Inventory Management
           </h3>
           <Button
-            className="py-2 text-sm"
+            className="py-2 text-sm w-full sm:w-auto"
             onClick={() => setIsAdding(!isAdding)}
           >
             {isAdding ? (
@@ -185,7 +185,8 @@ export const AdminDashboard = ({ roomTypes, setRoomTypes, rooms }) => {
           </form>
         )}
 
-        <table className="w-full text-left text-sm">
+        <div className="w-full overflow-scroll">
+          <table className="w-full text-left text-sm min-w-125">
           <thead className="bg-gray-50 text-gray-500 border-b border-gray-100">
             <tr>
               <th className="p-3 font-semibold">Type Name</th>
@@ -215,6 +216,8 @@ export const AdminDashboard = ({ roomTypes, setRoomTypes, rooms }) => {
             ))}
           </tbody>
         </table>
+        </div>
+        
       </Card>
     </div>
   );

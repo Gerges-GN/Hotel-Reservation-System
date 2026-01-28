@@ -23,8 +23,8 @@ export const StaffDashboard = ({
       reservations.map((r) =>
         r.id === resId
           ? { ...r, status: "Checked In", room: vacantRoom.number }
-          : r
-      )
+          : r,
+      ),
     );
     updateStatus(vacantRoom.id, "Occupied");
   };
@@ -33,8 +33,8 @@ export const StaffDashboard = ({
     const res = reservations.find((r) => r.id === resId);
     setReservations(
       reservations.map((r) =>
-        r.id === resId ? { ...r, status: "Checked Out" } : r
-      )
+        r.id === resId ? { ...r, status: "Checked Out" } : r,
+      ),
     );
     const room = rooms.find((r) => r.number === res.room);
     if (room) updateStatus(room.id, "Cleaning");
@@ -49,14 +49,14 @@ export const StaffDashboard = ({
 
   return (
     <div className="space-y-8 animate-fadeIn">
-      <div className="flex justify-between items-center bg-white p-4 rounded-2xl shadow-sm border border-gray-100">
+      <div className="flex flex-col sm:flex-row gap-3 justify-between sm:items-center bg-white p-4 rounded-2xl shadow-sm border border-gray-100">
         <div>
           <h2 className="text-2xl font-bold text-gray-800">Front Desk</h2>
           <p className="text-gray-500 text-sm">
             Manage operations and guest flow
           </p>
         </div>
-        <div className="flex bg-gray-100 p-1 rounded-xl">
+        <div className="flex m-auto sm:m-0 sm:ml-auto bg-gray-100 p-1 rounded-xl">
           {["rooms", "res"].map((v) => (
             <button
               key={v}
@@ -79,15 +79,13 @@ export const StaffDashboard = ({
             <div
               key={room.id}
               className={`p-4 rounded-2xl border-2 ${
-                statusColors[room.status]
-                  .split(" ")[2]
+                statusColors[room.status].split(" ")[2]
               } bg-white shadow-sm hover:shadow-md transition-all flex flex-col justify-between h-40`}
             >
               <div className="flex justify-between items-start">
                 <span className="text-2xl font-bold text-gray-800">
                   {room.number}
                 </span>
-                
               </div>
               <select
                 value={room.status}
@@ -107,72 +105,76 @@ export const StaffDashboard = ({
         </div>
       ) : (
         <Card>
-          <table className="w-full text-left">
-            <thead className="bg-gray-50 border-b border-gray-100">
-              <tr>
-                <th className="p-4 text-xs font-bold text-gray-500 uppercase">
-                  ID
-                </th>
-                <th className="p-4 text-xs font-bold text-gray-500 uppercase">
-                  Guest
-                </th>
-                <th className="p-4 text-xs font-bold text-gray-500 uppercase">
-                  Room
-                </th>
-                <th className="p-4 text-xs font-bold text-gray-500 uppercase">
-                  Status
-                </th>
-                <th className="p-4 text-xs font-bold text-gray-500 uppercase">
-                  Action
-                </th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-100">
-              {reservations.map((res) => (
-                <tr key={res.id} className="hover:bg-gray-50">
-                  <td className="p-4 font-mono text-xs text-gray-500">
-                    {res.id}
-                  </td>
-                  <td className="p-4 font-medium text-gray-900">{res.guest}</td>
-                  <td className="p-4 font-bold text-gray-700">
-                    {res.room || "-"}
-                  </td>
-                  <td className="p-4">
-                    <Badge
-                      color={
-                        res.status === "Confirmed"
-                          ? "bg-green-100 text-green-700"
-                          : res.status === "Checked In"
-                          ? "bg-blue-100 text-blue-700"
-                          : "bg-gray-100 text-gray-600"
-                      }
-                    >
-                      {res.status}
-                    </Badge>
-                  </td>
-                  <td className="p-4">
-                    {res.status === "Confirmed" && (
-                      <Button
-                        onClick={() => handleCheckIn(res.id)}
-                        className="py-1.5 px-3 text-xs h-8"
-                      >
-                        Check In
-                      </Button>
-                    )}
-                    {res.status === "Checked In" && (
-                      <Button
-                        onClick={() => handleCheckOut(res.id)}
-                        className="py-1.5 px-3 text-xs h-8"
-                        variant="secondary"
-                      >
-                        Check Out
-                      </Button>
-                    )}
-                  </td>
+          <div className="w-full overflow-scroll">
+            <table className="w-full text-left text-sm min-w-125">
+              <thead className="bg-gray-50 border-b border-gray-100">
+                <tr>
+                  <th className="p-4 text-xs font-bold text-gray-500 uppercase">
+                    ID
+                  </th>
+                  <th className="p-4 text-xs font-bold text-gray-500 uppercase">
+                    Guest
+                  </th>
+                  <th className="p-4 text-xs font-bold text-gray-500 uppercase">
+                    Room
+                  </th>
+                  <th className="p-4 text-xs font-bold text-gray-500 uppercase">
+                    Status
+                  </th>
+                  <th className="p-4 text-xs font-bold text-gray-500 uppercase">
+                    Action
+                  </th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody className="divide-y divide-gray-100">
+                {reservations.map((res) => (
+                  <tr key={res.id} className="hover:bg-gray-50">
+                    <td className="p-4 font-mono text-xs text-gray-500">
+                      {res.id}
+                    </td>
+                    <td className="p-4 font-medium text-gray-900">
+                      {res.guest}
+                    </td>
+                    <td className="p-4 font-bold text-gray-700">
+                      {res.room || "-"}
+                    </td>
+                    <td className="p-4">
+                      <Badge
+                        color={
+                          res.status === "Confirmed"
+                            ? "bg-green-100 text-green-700"
+                            : res.status === "Checked In"
+                              ? "bg-blue-100 text-blue-700"
+                              : "bg-gray-100 text-gray-600"
+                        }
+                      >
+                        {res.status}
+                      </Badge>
+                    </td>
+                    <td className="p-4">
+                      {res.status === "Confirmed" && (
+                        <Button
+                          onClick={() => handleCheckIn(res.id)}
+                          className="py-1.5 px-3 text-xs h-8"
+                        >
+                          Check In
+                        </Button>
+                      )}
+                      {res.status === "Checked In" && (
+                        <Button
+                          onClick={() => handleCheckOut(res.id)}
+                          className="py-1.5 px-3 text-xs h-8"
+                          variant="secondary"
+                        >
+                          Check Out
+                        </Button>
+                      )}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </Card>
       )}
     </div>

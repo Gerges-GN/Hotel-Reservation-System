@@ -51,8 +51,8 @@ export default function App() {
   return (
     <div className="min-h-screen bg-gray-50 font-sans text-gray-900">
       <nav className="bg-white/80 backdrop-blur-md border-b border-gray-100 sticky top-0 z-40">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between h-20">
+        <div className="max-w-7xl mx-auto py-2 px-4 sm:px-6 lg:px-8">
+          <div className={`flex gap-3 justify-between px-5 py-3 ${!user && "flex-col sm:flex-row"}`}>
             <div className="flex items-center gap-3">
               <div className="bg-blue-600 p-2.5 rounded-xl text-white shadow-blue-200 shadow-lg">
                 <Hotel className="w-6 h-6" />
@@ -83,11 +83,20 @@ export default function App() {
                 </button>
               </div>
             ) : (
-              <div className="flex gap-3 items-center">
-                <Button variant="secondary" onClick={() => setLogInOpen(true)}>
+              <div className="flex items-center gap-3 w-full sm:w-60">
+                <Button
+                  className="flex-1 py-2! sm:py-2.5"
+                  variant="secondary"
+                  onClick={() => setLogInOpen(true)}
+                >
                   Log In
                 </Button>
-                <Button onClick={() => setSignUpOpen(true)}>Sign Up</Button>
+                <Button
+                  className="flex-1 py-2! sm:py-2.5"
+                  onClick={() => setSignUpOpen(true)}
+                >
+                  Sign Up
+                </Button>
               </div>
             )}
           </div>
@@ -124,10 +133,18 @@ export default function App() {
       </footer>
 
       {logInOpen && (
-        <AuthModal onClose={() => setLogInOpen(false)} onLogin={setUser} login={true} />
+        <AuthModal
+          onClose={() => setLogInOpen(false)}
+          onLogin={setUser}
+          login={true}
+        />
       )}
       {signUpOpen && (
-        <AuthModal onClose={() => setSignUpOpen(false)} onLogin={setUser} login={false} />
+        <AuthModal
+          onClose={() => setSignUpOpen(false)}
+          onLogin={setUser}
+          login={false}
+        />
       )}
 
       {bookingRoom && (

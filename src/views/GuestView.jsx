@@ -4,7 +4,6 @@ import { Button } from "../components/common/Button";
 import { Card } from "../components/common/Card";
 
 export const GuestView = ({ roomTypes, rooms, reservations, onBook }) => {
-  // Get today's date in YYYY-MM-DD format
   const today = new Date().toISOString().split("T")[0];
 
   const [searchParams, setSearchParams] = useState({
@@ -25,7 +24,6 @@ export const GuestView = ({ roomTypes, rooms, reservations, onBook }) => {
   const handleCheckInChange = (e) => {
     const newCheckIn = e.target.value;
 
-    // Logic: If new CheckIn is after current CheckOut, clear CheckOut
     let newCheckOut = searchParams.checkOut;
     if (
       searchParams.checkOut &&
@@ -50,19 +48,15 @@ export const GuestView = ({ roomTypes, rooms, reservations, onBook }) => {
     const start = new Date(searchParams.checkIn);
     const end = new Date(searchParams.checkOut);
 
-    // 1. Filter by Capacity
     let availableTypes = roomTypes.filter(
       (r) => r.capacity >= searchParams.guests,
     );
 
-    // 2. Filter by Availability (Hide Sold Out)
     availableTypes = availableTypes.filter((type) => {
-      // Count total physical rooms for this type
       const totalRoomsOfType = rooms.filter(
         (room) => room.typeId === type.id,
       ).length;
 
-      // Count confirmed reservations for this type that overlap with selected dates
       const conflictingReservations = reservations.filter((res) => {
         if (res.roomTypeId !== type.id) return false;
         if (res.status === "Cancelled" || res.status === "Checked Out")
@@ -71,11 +65,9 @@ export const GuestView = ({ roomTypes, rooms, reservations, onBook }) => {
         const resStart = new Date(res.checkIn);
         const resEnd = new Date(res.checkOut);
 
-        // Check date overlap logic: (StartA < EndB) and (EndA > StartB)
         return start < resEnd && end > resStart;
       });
 
-      // If bookings >= total rooms, it's sold out
       return conflictingReservations.length < totalRoomsOfType;
     });
 
@@ -83,7 +75,6 @@ export const GuestView = ({ roomTypes, rooms, reservations, onBook }) => {
     setIsSearched(true);
   };
 
-  // Determine min date for checkout based on selected checkin
   const minCheckOut = searchParams.checkIn
     ? new Date(new Date(searchParams.checkIn).getTime() + 86400000)
         .toISOString()
@@ -93,85 +84,89 @@ export const GuestView = ({ roomTypes, rooms, reservations, onBook }) => {
   return (
     <div className="space-y-12 animate-fadeIn">
       {/* Hero Section */}
-      <div className="relative h-125 rounded-3xl overflow-hidden shadow-2xl mx-4 mt-4 group">
+      <div className="relative h-150 md:h-125 rounded-3xl overflow-hidden shadow-2xl mx-4 mt-4 group">
         <img
           src="https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?auto=format&fit=crop&q=80&w=1600"
           alt="Luxury Hotel"
           className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
         />
         <div className="absolute inset-0 bg-linear-to-t from-black/80 via-black/20 to-transparent flex flex-col justify-end p-8 md:p-16">
-          <h1 className="text-5xl md:text-6xl font-bold text-white mb-6 drop-shadow-lg">
-            Find Your <span className="text-blue-400">Sanctuary.</span>
+          <h1 className="text-5xl md:text-6xl font-bold text-white py-6 drop-shadow-lg">
+            Find Your <span className="text-blue-300">Sanctuary.</span>
           </h1>
 
           {/* Enhanced Search Bar */}
-          <div className="bg-white/95 backdrop-blur-md p-6 rounded-2xl shadow-xl flex flex-col md:flex-row gap-4 max-w-5xl items-end">
-            <div className="flex-1 w-full space-y-1">
-              <label className="text-xs font-bold text-gray-500 uppercase ml-1">
-                Check In
-              </label>
-              <div className="flex items-center bg-gray-50 px-4 py-3 rounded-xl border border-gray-100 focus-within:ring-2 focus-within:ring-blue-500 transition-all">
-                <Calendar className="w-5 h-5 text-blue-500 mr-3" />
-                <input
-                  type="date"
-                  min={today}
-                  value={searchParams.checkIn}
-                  onChange={handleCheckInChange}
-                  className="bg-transparent w-full outline-none text-gray-700 font-medium"
-                />
+          <div className="bg-white/95 backdrop-blur-md p-6 rounded-2xl shadow-xl flex flex-col lg:flex-row gap-4 max-w-5xl items-end -auto">
+            <div className="flex flex-col md:flex-row items-end gap-4 w-full">
+              <div className="flex-1 w-full space-y-1">
+                <label className="text-xs font-bold text-gray-500 uppercase ml-1">
+                  Check In
+                </label>
+                <div className="flex items-center bg-gray-50 px-4 py-3 rounded-xl border border-gray-100 focus-within:ring-2 focus-within:ring-blue-500 transition-all">
+                  <Calendar className="w-5 h-5 text-blue-500 mr-3" />
+                  <input
+                    type="date"
+                    min={today}
+                    value={searchParams.checkIn}
+                    onChange={handleCheckInChange}
+                    className="bg-transparent w-full outline-none text-gray-700 font-medium"
+                  />
+                </div>
+              </div>
+              <div className="flex-1 w-full space-y-1">
+                <label className="text-xs font-bold text-gray-500 uppercase ml-1">
+                  Check Out
+                </label>
+                <div className="flex items-center bg-gray-50 px-4 py-3 rounded-xl border border-gray-100 focus-within:ring-2 focus-within:ring-blue-500 transition-all">
+                  <Calendar className="w-5 h-5 text-blue-500 mr-3" />
+                  <input
+                    type="date"
+                    min={minCheckOut}
+                    value={searchParams.checkOut}
+                    onChange={(e) =>
+                      setSearchParams({
+                        ...searchParams,
+                        checkOut: e.target.value,
+                      })
+                    }
+                    className="bg-transparent w-full outline-none text-gray-700 font-medium"
+                  />
+                </div>
               </div>
             </div>
-            <div className="flex-1 w-full space-y-1">
-              <label className="text-xs font-bold text-gray-500 uppercase ml-1">
-                Check Out
-              </label>
-              <div className="flex items-center bg-gray-50 px-4 py-3 rounded-xl border border-gray-100 focus-within:ring-2 focus-within:ring-blue-500 transition-all">
-                <Calendar className="w-5 h-5 text-blue-500 mr-3" />
-                <input
-                  type="date"
-                  min={minCheckOut}
-                  value={searchParams.checkOut}
-                  onChange={(e) =>
-                    setSearchParams({
-                      ...searchParams,
-                      checkOut: e.target.value,
-                    })
-                  }
-                  className="bg-transparent w-full outline-none text-gray-700 font-medium"
-                />
+            <div className="flex flex-col md:flex-row items-end gap-4 w-full">
+              <div className="flex-1 w-full space-y-1">
+                <label className="text-xs font-bold text-gray-500 uppercase ml-1">
+                  Guests
+                </label>
+                <div className="flex items-center bg-gray-50 px-4 py-3 rounded-xl border border-gray-100 focus-within:ring-2 focus-within:ring-blue-500 transition-all">
+                  <Users className="w-5 h-5 text-blue-500 mr-3" />
+                  <select
+                    value={searchParams.guests}
+                    onChange={(e) =>
+                      setSearchParams({
+                        ...searchParams,
+                        guests: Number(e.target.value),
+                      })
+                    }
+                    className="bg-transparent w-full outline-none text-gray-700 font-medium cursor-pointer"
+                  >
+                    {[1, 2, 3, 4, 5, 6].map((n) => (
+                      <option key={n} value={n}>
+                        {n > 1 ? `${n} Guests` : `${n} Guest`}
+                      </option>
+                    ))}
+                  </select>
+                </div>
               </div>
-            </div>
-            <div className="flex-1 w-full space-y-1">
-              <label className="text-xs font-bold text-gray-500 uppercase ml-1">
-                Guests
-              </label>
-              <div className="flex items-center bg-gray-50 px-4 py-3 rounded-xl border border-gray-100 focus-within:ring-2 focus-within:ring-blue-500 transition-all">
-                <Users className="w-5 h-5 text-blue-500 mr-3" />
-                <select
-                  value={searchParams.guests}
-                  onChange={(e) =>
-                    setSearchParams({
-                      ...searchParams,
-                      guests: Number(e.target.value),
-                    })
-                  }
-                  className="bg-transparent w-full outline-none text-gray-700 font-medium cursor-pointer"
+              <div className=" flex-1 w-full">
+                <Button
+                  onClick={handleSearch}
+                  className="h-13 px-8 shadow-blue-200 w-full md:w-auto"
                 >
-                  {[1, 2, 3, 4, 5, 6].map((n) => (
-                    <option key={n} value={n}>
-                      {n > 1 ? `${n} Guests` : `${n} Guest`}
-                    </option>
-                  ))}
-                </select>
+                  <Search className="w-4 h-4 mr-2" /> Check Availability
+                </Button>
               </div>
-            </div>
-            <div className="w-full md:w-auto">
-              <Button
-                onClick={handleSearch}
-                className="h-13 px-8 shadow-blue-200 w-full md:w-auto"
-              >
-                <Search className="w-4 h-4 mr-2" /> Check Availability
-              </Button>
             </div>
           </div>
         </div>
@@ -251,7 +246,6 @@ export const GuestView = ({ roomTypes, rooms, reservations, onBook }) => {
               No rooms available for these dates/criteria.
             </div>
             <Button
-            
               variant="secondary"
               onClick={() => {
                 setSearchParams({
