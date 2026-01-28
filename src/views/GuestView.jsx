@@ -90,13 +90,13 @@ export const GuestView = ({ roomTypes, rooms, reservations, onBook }) => {
           alt="Luxury Hotel"
           className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
         />
-        <div className="absolute inset-0 bg-linear-to-t from-black/80 via-black/20 to-transparent flex flex-col justify-end p-8 md:p-16">
+        <div className="absolute inset-0 bg-linear-to-t from-black/80 via-black/20 to-transparent flex flex-col justify-end p-4 sm:p-8 md:p-16">
           <h1 className="text-5xl md:text-6xl font-bold text-white py-6 drop-shadow-lg">
             Find Your <span className="text-blue-300">Sanctuary.</span>
           </h1>
 
           {/* Enhanced Search Bar */}
-          <div className="bg-white/95 backdrop-blur-md p-6 rounded-2xl shadow-xl flex flex-col lg:flex-row gap-4 max-w-5xl items-end -auto">
+          <div className="bg-white/95 backdrop-blur-md p-4 sm:p-6 rounded-2xl shadow-xl flex flex-col lg:flex-row gap-4 max-w-5xl items-end -auto">
             <div className="flex flex-col md:flex-row items-end gap-4 w-full">
               <div className="flex-1 w-full space-y-1">
                 <label className="text-xs font-bold text-gray-500 uppercase ml-1">
@@ -174,7 +174,7 @@ export const GuestView = ({ roomTypes, rooms, reservations, onBook }) => {
 
       {/* Results Section */}
       <div className="max-w-7xl mx-auto px-4">
-        <div className="flex justify-between items-end mb-6">
+        <div className="flex flex-col sm:flex-row justify-between sm:items-end gap-3 mb-6">
           <h2 className="text-2xl font-bold text-gray-800 flex items-center gap-2">
             Available Rooms
             <span className="text-sm font-normal text-gray-500 bg-gray-100 px-2 py-1 rounded-full">

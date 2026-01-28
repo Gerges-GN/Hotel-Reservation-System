@@ -51,8 +51,8 @@ export default function App() {
   return (
     <div className="min-h-screen bg-gray-50 font-sans text-gray-900">
       <nav className="bg-white/80 backdrop-blur-md border-b border-gray-100 sticky top-0 z-40">
-        <div className="max-w-7xl mx-auto py-2 px-4 sm:px-6 lg:px-8">
-          <div className={`flex gap-3 justify-between px-5 py-3 ${!user && "flex-col sm:flex-row"}`}>
+        <div className="max-w-7xl mx-auto py-2 px-6 lg:px-8 pt-4 sm:pt-2 ">
+          <div className={`flex gap-3 justify-between ${!user && "flex-col sm:flex-row"}`}>
             <div className="flex items-center gap-3">
               <div className="bg-blue-600 p-2.5 rounded-xl text-white shadow-blue-200 shadow-lg">
                 <Hotel className="w-6 h-6" />
