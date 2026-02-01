@@ -5,9 +5,48 @@
     <link rel="icon" type="image/svg+xml" href="/icon.png" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>HOTEL RESERVATION SYSTEM</title>
+    <style>
+      /* These styles match src/components/LoadingSpinner.css */
+      #initial-loader {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: #ffffff;
+        z-index: 9999;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+      }
+      #initial-loader .spinner {
+        width: 70px;
+        height: 70px;
+        border: 5px solid #e5e7eb; /* Light gray track */
+        border-top-color: #3b82f6; /* Blue spinner */
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+      }
+      @keyframes spin {
+        to {
+          transform: rotate(360deg);
+        }
+      }
+    </style>
   </head>
   <body>
+    <div id="initial-loader">
+      <div class="spinner"></div>
+    </div>
     <div id="root"></div>
+    <script>
+      window.addEventListener("load", () => {
+        const initialLoader = document.getElementById("initial-loader");
+        if (initialLoader) {
+          initialLoader.style.display = "none";
+        }
+      });
+    </script>
     <script type="module" src="/src/main.jsx"></script>
   </body>
 </html>

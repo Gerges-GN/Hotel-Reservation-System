@@ -1,48 +1,53 @@
 /* eslint-disable react-hooks/purity */
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import {
   X,
   CreditCard,
   CheckCircle,
   User,
-  Phone,
   Mail,
   AlertCircle,
 } from "lucide-react";
 import { Card } from "../common/Card";
 import { Button } from "../common/Button";
+import { Calendar } from "lucide-react";
 
 export const BookingModal = ({ room, user, onClose, onConfirm }) => {
   const [step, setStep] = useState(1);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(""); // Validation Error State
+  const [error, setError] = useState("");
+  const today = new Date().toISOString().split("T")[0];
+  const tomorrow = new Date(new Date().getTime() + 86400000)
+    .toISOString()
+    .split("T")[0];
 
   const [formData, setFormData] = useState({
     name: "",
     email: "",
-    phone: "",
+    check_in: today,
+    check_out: tomorrow,
   });
 
   useEffect(() => {
     if (user) {
       setFormData({
-        name: user.name,
-        email: `${user.name.toLowerCase().replace(" ", ".")}@example.com`,
-        phone: "555-0123",
+        ...formData,
+        name: user.username,
+        email: user.email,
       });
     }
   }, [user]);
 
-  // Validate Step 1 before moving to Step 2
+  const minCheckOut = formData.check_in
+    ? new Date(new Date(formData.check_in).getTime() + 86400000)
+        .toISOString()
+        .split("T")[0]
+    : tomorrow;
+
   const handleNextStep = () => {
     setError("");
 
-    // Basic Validation
-    if (
-      !formData.name.trim() ||
-      !formData.email.trim() ||
-      !formData.phone.trim()
-    ) {
+    if (!formData.name.trim() || !formData.email.trim()) {
       setError("Please fill in all contact details to proceed.");
       return;
     }
@@ -62,7 +67,7 @@ export const BookingModal = ({ room, user, onClose, onConfirm }) => {
     setTimeout(() => {
       setLoading(false);
       setStep(3);
-    }, 2000);
+    }, 500);
   };
 
   const handleFinalize = () => {
@@ -78,8 +83,8 @@ export const BookingModal = ({ room, user, onClose, onConfirm }) => {
             {step === 1
               ? "Contact Details"
               : step === 2
-              ? "Payment"
-              : "Confirmed"}
+                ? "Payment"
+                : "Confirmed"}
           </h3>
           <button onClick={onClose}>
             <X className="w-5 h-5 text-gray-500 hover:text-red-500" />
@@ -92,7 +97,10 @@ export const BookingModal = ({ room, user, onClose, onConfirm }) => {
               {/* Room Summary */}
               <div className="flex gap-4 p-4 bg-blue-50 rounded-xl border border-blue-100">
                 <img
-                  src={room.image}
+                  src={
+                    room.image ||
+                    "https://images.unsplash.com/photo-1611892440504-42a792e24d32?auto=format&fit=crop&q=80&w=800"
+                  }
                   className="w-20 h-20 rounded-lg object-cover shadow-sm"
                   alt="Room"
                 />
@@ -151,17 +159,59 @@ export const BookingModal = ({ room, user, onClose, onConfirm }) => {
                     }`}
                   />
                 </div>
-                <div className="relative">
-                  <Phone className="absolute left-3 top-3 w-5 h-5 text-gray-400" />
-                  <input
-                    placeholder="Phone Number"
-                    value={formData.phone}
-                    onChange={(e) => {
-                      setFormData({ ...formData, phone: e.target.value });
-                      setError("");
-                    }}
-                    className="w-full pl-10 p-3 border border-gray-200 rounded-xl outline-none focus:ring-2 focus:ring-blue-500 transition-all"
-                  />
+                <div className="flex flex-col sm:flex-row gap-2">
+                  <div className="flex-1">
+                    <label className="text-xs font-bold text-gray-500 uppercase ml-1">
+                      Check In
+                    </label>
+                    <div className="relative">
+                      <Calendar className="absolute left-3 top-3 w-5 h-5 text-gray-400" />
+                      <input
+                        type="date"
+                        min={today}
+                        value={formData.check_in}
+                        onChange={(e) => {
+                          const newCheckIn = e.target.value;
+                          const nextDay = new Date(
+                            new Date(newCheckIn).getTime() + 86400000,
+                          )
+                            .toISOString()
+                            .split("T")[0];
+                          setFormData({
+                            ...formData,
+                            check_in: newCheckIn,
+                            check_out:
+                              formData.check_out < nextDay
+                                ? nextDay
+                                : formData.check_out,
+                          });
+                          setError("");
+                        }}
+                        className="w-full pl-10 p-3 border rounded-xl outline-none focus:ring-2 focus:ring-blue-500 transition-all border-gray-200"
+                      />
+                    </div>
+                  </div>
+                  <div className="flex-1">
+                    <label className="text-xs font-bold text-gray-500 uppercase ml-1">
+                      Check Out
+                    </label>
+                    <div className="relative ">
+                      <Calendar className="absolute left-3 top-3 w-5 h-5 text-gray-400" />
+                      <input
+                        type="date"
+                        min={minCheckOut}
+                        value={formData.check_out}
+                        onChange={(e) => {
+                          setFormData({
+                            ...formData,
+                            check_out: e.target.value,
+                          });
+                          setError("");
+                        }}
+                        className="w-full pl-10 p-3 border rounded-xl outline-none focus:ring-2 focus:ring-blue-500 transition-all border-gray-200"
+                      />
+                    </div>
+                  </div>
                 </div>
               </div>
 
@@ -195,15 +245,18 @@ export const BookingModal = ({ room, user, onClose, onConfirm }) => {
                   <div className="bg-gray-50 p-4 rounded-xl border border-gray-100 text-left space-y-3">
                     <input
                       placeholder="Card Number"
+                      value="4256-4927-1238-9743"
                       className="w-full p-3 bg-white border border-gray-200 rounded-lg"
                     />
                     <div className="flex gap-3">
                       <input
                         placeholder="MM/YY"
+                        value="01/29"
                         className="w-full p-3 bg-white border border-gray-200 rounded-lg"
                       />
                       <input
                         placeholder="CVC"
+                        value="123"
                         className="w-full p-3 bg-white border border-gray-200 rounded-lg"
                       />
                     </div>
@@ -216,10 +269,7 @@ export const BookingModal = ({ room, user, onClose, onConfirm }) => {
                     >
                       Back
                     </Button>
-                    <Button
-                      onClick={handlePay}
-                      className="flex-[2] py-3 text-lg"
-                    >
+                    <Button onClick={handlePay} className="flex-2 py-3 text-lg">
                       Pay Now
                     </Button>
                   </div>
@@ -240,7 +290,7 @@ export const BookingModal = ({ room, user, onClose, onConfirm }) => {
                 <p className="text-gray-500 mt-2">
                   Your Reservation ID is{" "}
                   <span className="font-mono font-bold text-gray-900">
-                    #RES-{Math.floor(Math.random() * 1000)}
+                    #RES-26{Math.floor(Math.random() * 100)}
                   </span>
                 </p>
               </div>

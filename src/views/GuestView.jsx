@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { Calendar, Users, Search } from "lucide-react";
 import { Button } from "../components/common/Button";
 import { Card } from "../components/common/Card";
+import LoadingSpinner from "../components/common/LoadingSpinner";
 
 export const GuestView = ({ roomTypes, rooms, reservations, onBook }) => {
   const today = new Date().toISOString().split("T")[0];
@@ -12,7 +13,7 @@ export const GuestView = ({ roomTypes, rooms, reservations, onBook }) => {
     guests: 1,
   });
 
-  const [results, setResults] = useState([]);
+  const [results, setResults] = useState();
   const [isSearched, setIsSearched] = useState(false);
 
   // Initialize results
@@ -81,6 +82,9 @@ export const GuestView = ({ roomTypes, rooms, reservations, onBook }) => {
         .split("T")[0]
     : today;
 
+  if (!results) {
+    return <LoadingSpinner fullScreen />;
+  }
   return (
     <div className="space-y-12 animate-fadeIn">
       {/* Hero Section */}
@@ -173,94 +177,102 @@ export const GuestView = ({ roomTypes, rooms, reservations, onBook }) => {
       </div>
 
       {/* Results Section */}
-      <div className="max-w-7xl mx-auto px-4">
-        <div className="flex flex-col sm:flex-row justify-between sm:items-end gap-3 mb-6">
-          <h2 className="text-2xl font-bold text-gray-800 flex items-center gap-2">
-            Available Rooms
-            <span className="text-sm font-normal text-gray-500 bg-gray-100 px-2 py-1 rounded-full">
-              {results.length} Types
-            </span>
-          </h2>
-          {isSearched && (
-            <span className="text-sm text-gray-500">
-              Showing availability for {searchParams.checkIn} to{" "}
-              {searchParams.checkOut}
-            </span>
+
+      {results ? (
+        <div className="max-w-7xl mx-auto px-4">
+          <div className="flex flex-col sm:flex-row justify-between sm:items-end gap-3 mb-6">
+            <h2 className="text-2xl font-bold text-gray-800 flex items-center gap-2">
+              Available Rooms
+              <span className="text-sm font-normal text-gray-500 bg-gray-100 px-2 py-1 rounded-full">
+                {results.length} Types
+              </span>
+            </h2>
+            {isSearched && (
+              <span className="text-sm text-gray-500">
+                Showing availability for {searchParams.checkIn} to{" "}
+                {searchParams.checkOut}
+              </span>
+            )}
+          </div>
+
+          {results.length > 0 ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+              {results.map((room) => (
+                <Card
+                  key={room.id}
+                  className="group hover:shadow-xl transition-all duration-300"
+                >
+                  <div className="relative h-56 overflow-hidden">
+                    <img
+                      src={
+                        room.image ||
+                        "https://images.unsplash.com/photo-1611892440504-42a792e24d32?auto=format&fit=crop&q=80&w=800"
+                      }
+                      alt={room.name}
+                      className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
+                    />
+                    <div className="absolute top-4 right-4 bg-white/90 backdrop-blur px-3 py-1 rounded-lg text-sm font-bold shadow-sm">
+                      ${room.price}{" "}
+                      <span className="text-gray-500 font-normal text-xs">
+                        / night
+                      </span>
+                    </div>
+                    <div className="absolute bottom-4 left-4 text-white backdrop-blur px-3 py-1 rounded-lg text-sm font-bold shadow-sm">
+                      {room.capacity}{" "}
+                      <span className="text-white/80 font-normal text-xs">
+                        guests
+                      </span>
+                    </div>
+                  </div>
+                  <div className="p-6">
+                    <h3 className="text-xl font-bold text-gray-900 mb-2">
+                      {room.name}
+                    </h3>
+                    <p className="text-gray-500 text-sm mb-4 line-clamp-2">
+                      {room.description}
+                    </p>
+                    <div className="flex gap-2 mb-6">
+                      {room.amenities &&
+                        room.amenities.map((am) => (
+                          <span
+                            key={am}
+                            className="text-xs font-medium text-gray-600 bg-gray-50 px-2 py-1 rounded border border-gray-100"
+                          >
+                            {am}
+                          </span>
+                        ))}
+                    </div>
+                    <Button onClick={() => onBook(room)} className="w-full">
+                      Book Now
+                    </Button>
+                  </div>
+                </Card>
+              ))}
+            </div>
+          ) : (
+            <div className="flex flex-col items-center justify-center w-full py-20 bg-gray-50 rounded-2xl border border-dashed border-gray-200">
+              <div className="text-gray-400 mb-2">
+                No rooms available for these dates/criteria.
+              </div>
+              <Button
+                variant="secondary"
+                onClick={() => {
+                  setSearchParams({
+                    ...searchParams,
+                    checkIn: today,
+                    checkOut: "",
+                  });
+                  setResults(roomTypes);
+                }}
+              >
+                Reset Search
+              </Button>
+            </div>
           )}
         </div>
-
-        {results.length > 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {results.map((room) => (
-              <Card
-                key={room.id}
-                className="group hover:shadow-xl transition-all duration-300"
-              >
-                <div className="relative h-56 overflow-hidden">
-                  <img
-                    src={room.image}
-                    alt={room.name}
-                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
-                  />
-                  <div className="absolute top-4 right-4 bg-white/90 backdrop-blur px-3 py-1 rounded-lg text-sm font-bold shadow-sm">
-                    ${room.price}{" "}
-                    <span className="text-gray-500 font-normal text-xs">
-                      / night
-                    </span>
-                  </div>
-                  <div className="absolute bottom-4 left-4 text-white backdrop-blur px-3 py-1 rounded-lg text-sm font-bold shadow-sm">
-                    {room.capacity}{" "}
-                    <span className="text-white/80 font-normal text-xs">
-                      guests
-                    </span>
-                  </div>
-                </div>
-                <div className="p-6">
-                  <h3 className="text-xl font-bold text-gray-900 mb-2">
-                    {room.name}
-                  </h3>
-                  <p className="text-gray-500 text-sm mb-4 line-clamp-2">
-                    {room.description}
-                  </p>
-                  <div className="flex gap-2 mb-6">
-                    {room.amenities &&
-                      room.amenities.map((am) => (
-                        <span
-                          key={am}
-                          className="text-xs font-medium text-gray-600 bg-gray-50 px-2 py-1 rounded border border-gray-100"
-                        >
-                          {am}
-                        </span>
-                      ))}
-                  </div>
-                  <Button onClick={() => onBook(room)} className="w-full">
-                    Book Now
-                  </Button>
-                </div>
-              </Card>
-            ))}
-          </div>
-        ) : (
-          <div className="flex flex-col items-center justify-center w-full py-20 bg-gray-50 rounded-2xl border border-dashed border-gray-200">
-            <div className="text-gray-400 mb-2">
-              No rooms available for these dates/criteria.
-            </div>
-            <Button
-              variant="secondary"
-              onClick={() => {
-                setSearchParams({
-                  ...searchParams,
-                  checkIn: today,
-                  checkOut: "",
-                });
-                setResults(roomTypes);
-              }}
-            >
-              Reset Search
-            </Button>
-          </div>
-        )}
-      </div>
+      ) : (
+        <div>Loading...</div>
+      )}
     </div>
   );
 };

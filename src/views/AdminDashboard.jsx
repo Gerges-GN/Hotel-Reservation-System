@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import {
   TrendingUp,
   CreditCard,
@@ -12,6 +12,7 @@ import {
 import { Card } from "../components/common/Card";
 import { Button } from "../components/common/Button";
 import { api } from "../services/api";
+import LoadingSpinner from "../components/common/LoadingSpinner";
 
 export const AdminDashboard = ({ roomTypes, setRoomTypes, rooms }) => {
   const [isAdding, setIsAdding] = useState(false);
@@ -24,9 +25,7 @@ export const AdminDashboard = ({ roomTypes, setRoomTypes, rooms }) => {
     const updated = await api.addRoomType({
       ...newRoom,
       price: Number(newRoom.price),
-      amenities: ["Wifi", "TV"], // default
-      image:
-        "https://images.unsplash.com/photo-1611892440504-42a792e24d32?auto=format&fit=crop&q=80&w=800",
+      amenities: ["Wifi", "TV"],
       description: "New room type added by admin.",
     });
     setRoomTypes(updated);
@@ -51,6 +50,9 @@ export const AdminDashboard = ({ roomTypes, setRoomTypes, rooms }) => {
       : 0;
   const maintenance = rooms.filter((r) => r.status === "Maintenance").length;
 
+  if(!roomTypes) return (
+    <LoadingSpinner fullScreen/>
+  )
   return (
     <div className="space-y-8 animate-fadeIn">
       <h2 className="text-2xl font-bold text-gray-800">Admin Control Panel</h2>
@@ -187,37 +189,36 @@ export const AdminDashboard = ({ roomTypes, setRoomTypes, rooms }) => {
 
         <div className="w-full overflow-scroll">
           <table className="w-full text-left text-sm min-w-125">
-          <thead className="bg-gray-50 text-gray-500 border-b border-gray-100">
-            <tr>
-              <th className="p-3 font-semibold">Type Name</th>
-              <th className="p-3 font-semibold">Base Price</th>
-              <th className="p-3 font-semibold">Capacity</th>
-              <th className="p-3 font-semibold">Actions</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-gray-100">
-            {roomTypes.map((t) => (
-              <tr key={t.id} className="hover:bg-gray-50">
-                <td className="p-3 font-medium text-gray-900">{t.name}</td>
-                <td className="p-3 text-blue-600 font-bold">${t.price}</td>
-                <td className="p-3 text-gray-500">{t.capacity} Guests</td>
-                <td className="p-3 flex gap-2">
-                  <button className="p-1.5 hover:bg-blue-50 text-blue-600 rounded-lg transition-colors">
-                    <Edit className="w-4 h-4" />
-                  </button>
-                  <button
-                    onClick={() => handleDelete(t.id)}
-                    className="p-1.5 hover:bg-red-50 text-red-600 rounded-lg transition-colors"
-                  >
-                    <Trash2 className="w-4 h-4" />
-                  </button>
-                </td>
+            <thead className="bg-gray-50 text-gray-500 border-b border-gray-100">
+              <tr>
+                <th className="p-3 font-semibold">Type Name</th>
+                <th className="p-3 font-semibold">Base Price</th>
+                <th className="p-3 font-semibold">Capacity</th>
+                <th className="p-3 font-semibold">Actions</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody className="divide-y divide-gray-100">
+              {roomTypes.map((t) => (
+                <tr key={t.id} className="hover:bg-gray-50">
+                  <td className="p-3 font-medium text-gray-900">{t.name}</td>
+                  <td className="p-3 text-blue-600 font-bold">${t.price}</td>
+                  <td className="p-3 text-gray-500">{t.capacity} Guests</td>
+                  <td className="p-3 flex gap-2">
+                    <button className="p-1.5 hover:bg-blue-50 text-blue-600 rounded-lg transition-colors">
+                      <Edit className="w-4 h-4" />
+                    </button>
+                    <button
+                      onClick={() => handleDelete(t.documentId)}
+                      className="p-1.5 hover:bg-red-50 text-red-600 rounded-lg transition-colors"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         </div>
-        
       </Card>
     </div>
   );

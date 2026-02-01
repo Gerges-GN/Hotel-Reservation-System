@@ -1,122 +1,189 @@
-import { ROOM_TYPES, MOCK_ROOMS, MOCK_RESERVATIONS } from "./mockData";
+import axios from "axios";
 
-const STORAGE_KEYS = {
-  TYPES: "hrs_types",
-  ROOMS: "hrs_rooms",
-  RES: "hrs_reservations",
-  USERS: "hrs_users", 
+const API_URL = import.meta.env.VITE_STRAPI_URL;
+
+const getHeader = () => {
+  const token = localStorage.getItem("jwt");
+  return token ? { headers: { Authorization: `Bearer ${token}` } } : {};
 };
 
-// Initialize LocalStorage
-const initStorage = () => {
-  if (!localStorage.getItem(STORAGE_KEYS.TYPES))
-    localStorage.setItem(STORAGE_KEYS.TYPES, JSON.stringify(ROOM_TYPES));
-  if (!localStorage.getItem(STORAGE_KEYS.ROOMS))
-    localStorage.setItem(STORAGE_KEYS.ROOMS, JSON.stringify(MOCK_ROOMS));
-  if (!localStorage.getItem(STORAGE_KEYS.RES))
-    localStorage.setItem(STORAGE_KEYS.RES, JSON.stringify(MOCK_RESERVATIONS));
-  if (!localStorage.getItem(STORAGE_KEYS.USERS))
-    localStorage.setItem(
-      STORAGE_KEYS.USERS,
-      JSON.stringify([
-        {
-          name: "System Admin",
-          email: "admin@hrs.com",
-          password: "admin123",
-          role: "admin",
-        },
-        {
-          name: "Front Desk",
-          email: "staff@hrs.com",
-          password: "staff123",
-          role: "staff",
-        },
-      ])
-    );
+const fixImage = (img) => {
+  if (!img) return null;
+  const url = img.url || img?.[0]?.url;
+  if (!url) return null;
+  return url.startsWith("http") ? url : `${API_URL}${url}`;
 };
 
 export const api = {
-  // Authentication
-  login: (email, password) =>
-    new Promise((resolve, reject) => {
-      initStorage();
-      setTimeout(() => {
-        const users = JSON.parse(localStorage.getItem(STORAGE_KEYS.USERS));
-        const user = users.find(
-          (u) => u.email === email && u.password === password
-        );
+  // --- Auth ---
+  login: async (identifier, password) => {
+    try {
+      const { data } = await axios.post(`${API_URL}/api/auth/local`, {
+        identifier,
+        password,
+      });
 
-        if (user)
-          resolve({ name: user.name, email: user.email, role: user.role });
-        else reject("Invalid Username or Password");
-      }, 500);
-    }),
+      localStorage.setItem("jwt", data.jwt);
 
-  register: (name, email, password) =>
-    new Promise((resolve, reject) => {
-      initStorage();
-      setTimeout(() => {
-        const users = JSON.parse(localStorage.getItem(STORAGE_KEYS.USERS));
-        if (users.find((u) => u.email === email)) {
-          reject("User already exists");
-        } else {
-          const newUser = { name, email, password, role: "guest" };
-          users.push(newUser);
-          localStorage.setItem(STORAGE_KEYS.USERS, JSON.stringify(users));
-          resolve({ name, email, role: "guest" });
-        }
-      }, 500);
-    }),
+      let role = "guest";
+      const email = data.user.email || "";
+      if (email == "admin@hrs.com") role = "admin";
+      else if (email == "staff@hrs.com") role = "staff";
 
-  // Data Fetching
-  fetchData: async () => {
-    initStorage();
-    return {
-      roomTypes: JSON.parse(localStorage.getItem(STORAGE_KEYS.TYPES)),
-      rooms: JSON.parse(localStorage.getItem(STORAGE_KEYS.ROOMS)),
-      reservations: JSON.parse(localStorage.getItem(STORAGE_KEYS.RES)),
-    };
+      return { ...data.user, role };
+    } catch (error) {
+      console.error("Login Error:", error);
+      throw error;
+    }
   },
 
-  // Admin Actions
-  addRoomType: async (roomType) => {
-    const types = JSON.parse(localStorage.getItem(STORAGE_KEYS.TYPES));
-    const newType = { ...roomType, id: Date.now() };
-    const updated = [...types, newType];
-    localStorage.setItem(STORAGE_KEYS.TYPES, JSON.stringify(updated));
-    return updated;
+  register: async (username, email, password) => {
+    try {
+      const { data } = await axios.post(`${API_URL}/api/auth/local/register`, {
+        username,
+        email,
+        password,
+      });
+      localStorage.setItem("jwt", data.jwt);
+      return { ...data.user, role: "guest" };
+    } catch (error) {
+      console.error("Register Error:", error);
+      throw error;
+    }
+  },
+
+  fetchUserProfile: async () => {
+    try {
+      if (!localStorage.getItem("jwt")) return null;
+      const { data } = await axios.get(`${API_URL}/api/users/me`, getHeader());
+
+      let role = "guest";
+      if (data.email == "admin@hrs.com") role = "admin";
+      else if (data.email == "staff@hrs.com") role = "staff";
+
+      return { ...data, role };
+    } catch (e) {
+      return e;
+    }
+  },
+
+  // --- Data Fetching ---
+  fetchData: async () => {
+    try {
+      const [typesRes, roomsRes] = await Promise.all([
+        axios.get(`${API_URL}/api/room-types?populate=*`),
+        axios.get(`${API_URL}/api/rooms?populate=*`),
+      ]);
+
+      const roomTypes = typesRes?.data?.data?.map((item) => ({
+        id: item.id,
+        ...item,
+
+        image: fixImage(item.image || item.attributes?.image),
+      }));
+
+      const rooms = roomsRes?.data?.data?.map((item) => {
+        return {
+          id: item.id,
+          ...item,
+
+          status: item.room_status,
+
+          typeId: item.room_type?.data?.id || item.room_type?.id,
+        };
+      });
+
+      return { roomTypes, rooms };
+    } catch (e) {
+      console.error("API Error:", e);
+      return { roomTypes: [], rooms: [], reservations: [] };
+    }
+  },
+  fetchReservations: async () => {
+    let reservations = [];
+    try {
+      const resRes = await axios.get(
+        `${API_URL}/api/reservations?populate=*`,
+        getHeader(),
+      );
+      reservations = resRes.data;
+    } catch (e) {
+      console.error("Fetch Reservations Error:", e);
+    }
+    return reservations;
+  },
+
+  // --- Actions ---
+
+  createReservation: async (data) => {
+    const payload = {
+      data: {
+        guest_name: data.name,
+        email: data.email,
+        res_status: data.status,
+        check_in: data.checkIn,
+        check_out: data.checkOut,
+        room_type: data.roomType,
+      },
+    };
+
+    try {
+      await axios.post(`${API_URL}/api/reservations`, payload);
+    } catch (e) {
+      return e;
+    }
+  },
+
+  updateReservation: async ({ id, roomId, res_status }) => {
+    const payload = {
+      data: {
+        room: roomId,
+        res_status: res_status,
+        ...(roomId == null && { room_type: null }),
+      },
+    };
+    try {
+      await axios.put(
+        `${API_URL}/api/reservations/${id}`,
+        payload,
+        getHeader(),
+      );
+    } catch (e) {
+      console.error("Update Reservation Error:", e);
+    }
+  },
+
+  updateRoomStatus: async (roomId, status) => {
+    await axios.put(
+      `${API_URL}/api/rooms/${roomId}`,
+      { data: { room_status: status } },
+      getHeader(),
+    );
+    return true;
+  },
+
+  addRoomType: async (data) => {
+    await axios.post(`${API_URL}/api/room-types`, { data }, getHeader());
+    const { data: res } = await axios.get(
+      `${API_URL}/api/room-types?populate=*`,
+    );
+
+    return res.data.map((item) => ({
+      id: item.id,
+      ...(item.attributes || item),
+      image: fixImage(item.image || item.attributes?.image),
+    }));
   },
 
   deleteRoomType: async (id) => {
-    const types = JSON.parse(localStorage.getItem(STORAGE_KEYS.TYPES));
-    const updated = types.filter((t) => t.id !== id);
-    localStorage.setItem(STORAGE_KEYS.TYPES, JSON.stringify(updated));
-    return updated;
-  },
-
-  // Staff Actions
-  updateRoomStatus: async (roomId, status) => {
-    const rooms = JSON.parse(localStorage.getItem(STORAGE_KEYS.ROOMS));
-    const updated = rooms.map((r) => (r.id === roomId ? { ...r, status } : r));
-    localStorage.setItem(STORAGE_KEYS.ROOMS, JSON.stringify(updated));
-    return updated;
-  },
-
-  // Reservation Actions
-  createReservation: async (res) => {
-    const reservations = JSON.parse(localStorage.getItem(STORAGE_KEYS.RES));
-    const newRes = { ...res, id: `RES-${Math.floor(Math.random() * 10000)}` };
-    const updated = [newRes, ...reservations];
-    localStorage.setItem(STORAGE_KEYS.RES, JSON.stringify(updated));
-    return updated;
-  },
-
-  updateReservationStatus: async (resId, status, roomNum = null) => {
-    const reservations = JSON.parse(localStorage.getItem(STORAGE_KEYS.RES));
-    const updated = reservations.map((r) =>
-      r.id === resId ? { ...r, status, room: roomNum || r.room } : r
+    await axios.delete(`${API_URL}/api/room-types/${id}`, getHeader());
+    const { data: res } = await axios.get(
+      `${API_URL}/api/room-types?populate=*`,
     );
-    localStorage.setItem(STORAGE_KEYS.RES, JSON.stringify(updated));
-    return updated;
+    return res.data.map((item) => ({
+      id: item.id,
+      ...(item.attributes || item),
+      image: fixImage(item.image || item.attributes?.image),
+    }));
   },
 };

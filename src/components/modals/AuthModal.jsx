@@ -3,6 +3,7 @@ import { X, User, Lock, Mail } from "lucide-react";
 import { Card } from "../common/Card";
 import { Button } from "../common/Button";
 import { api } from "../../services/api";
+import { Phone } from "lucide-react";
 
 export const AuthModal = ({ onClose, onLogin, login }) => {
   const [isLogin, setIsLogin] = useState(login);
@@ -29,7 +30,7 @@ export const AuthModal = ({ onClose, onLogin, login }) => {
         user = await api.register(
           formData.name,
           formData.email,
-          formData.password
+          formData.password,
         );
       }
       onLogin(user);
@@ -38,7 +39,7 @@ export const AuthModal = ({ onClose, onLogin, login }) => {
       setError(
         typeof err === "string"
           ? err
-          : "Authentication failed. Please check inputs."
+          : "Login or signup failed. Please try again.",
       );
     } finally {
       setLoading(false);
